@@ -6,7 +6,6 @@ import { Button, Upload, Avatar, message, Spin } from "antd";
 import VFCanvas from "@/components/VFCanvas";
 import type { WatermarkRect } from "@/components/VFCanvas";
 
-
 export default function WatermarkRemovePage() {
   // 1. 原始文件（首次上传的图片）
   const [originalFile, setOriginalFile] = useState<File | null>(null);
@@ -19,8 +18,8 @@ export default function WatermarkRemovePage() {
   // 首次上传图片：初始化原始文件和当前文件
   const handleUpload: UploadProps["beforeUpload"] = (file) => {
     const url = URL.createObjectURL(file);
-    setOriginalFile(file);       // 保存原始文件
-    setCurrentFile(file);        // 初始当前文件 = 原始文件
+    setOriginalFile(file); // 保存原始文件
+    setCurrentFile(file); // 初始当前文件 = 原始文件
     setMediaSrc(url);
     message.success("图片加载成功");
     return false;
@@ -108,8 +107,14 @@ export default function WatermarkRemovePage() {
       <header className="h-14 w-full flex items-center justify-between px-6 bg-white shadow-sm sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-bold text-blue-600">水滴去水印</h1>
-          <Upload beforeUpload={handleUpload} showUploadList={false} accept="image/*">
-            <Button type="primary" shape="round">打开图片</Button>
+          <Upload
+            beforeUpload={handleUpload}
+            showUploadList={false}
+            accept="image/*"
+          >
+            <Button type="primary" shape="round">
+              打开图片
+            </Button>
           </Upload>
           {/* 重置按钮：回到原始图片 */}
           <Button shape="round" onClick={handleReset} disabled={!originalFile}>
@@ -117,9 +122,9 @@ export default function WatermarkRemovePage() {
           </Button>
         </div>
         <div className="flex items-center gap-4">
-          <Button 
-            type="primary" 
-            loading={loading} 
+          <Button
+            type="primary"
+            loading={loading}
             shape="round"
             onClick={handleSaveImage}
             disabled={!mediaSrc}
@@ -130,11 +135,34 @@ export default function WatermarkRemovePage() {
         </div>
       </header>
       <main className="flex-1 relative w-full h-full overflow-auto flex justify-center items-center p-8">
-        <VFCanvas
-          src={mediaSrc}
-          onRectChange={handleRemoveWatermark}
-          loading={loading}
-        />
+        <div style={{ width: 160 }}>
+          <ins
+            className="adsbygoogle"
+            style={{ display: "block" }}
+            data-ad-client="ca-pub-1925756896455648"
+            data-ad-slot="5558515832"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          ></ins>
+        </div>
+        <div className="flex-1 h-full">
+          <VFCanvas
+            src={mediaSrc}
+            onRectChange={handleRemoveWatermark}
+            loading={loading}
+          />
+        </div>
+
+        <div style={{ width: 160 }}>
+          <ins
+            className="adsbygoogle"
+            style={{ display: "block" }}
+            data-ad-client="ca-pub-1925756896455648"
+            data-ad-slot="7881426848"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          ></ins>
+        </div>
       </main>
     </div>
   );
