@@ -1,64 +1,140 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import { UserOutlined } from "@ant-design/icons";
+import type { UploadProps } from "antd";
+import { Button, Upload, Avatar, message, Spin } from "antd";
+import VFCanvas from "@/components/VFCanvas";
+import type { WatermarkRect } from "@/components/VFCanvas";
 
-export default function Home() {
+
+export default function WatermarkRemovePage() {
+  // 1. 原始文件（首次上传的图片）
+  const [originalFile, setOriginalFile] = useState<File | null>(null);
+  // 2. 当前处理中的文件（每次去水印后更新）
+  const [currentFile, setCurrentFile] = useState<File | null>(null);
+  // 3. 画布显示的图片URL
+  const [mediaSrc, setMediaSrc] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // 首次上传图片：初始化原始文件和当前文件
+  const handleUpload: UploadProps["beforeUpload"] = (file) => {
+    const url = URL.createObjectURL(file);
+    setOriginalFile(file);       // 保存原始文件
+    setCurrentFile(file);        // 初始当前文件 = 原始文件
+    setMediaSrc(url);
+    message.success("图片加载成功");
+    return false;
+  };
+
+  // 核心：把Blob转为File对象（关键！后端需要File格式）
+  const blobToFile = (blob: Blob, fileName: string): File => {
+    // 保留原始文件名和类型
+    return new File([blob], fileName, {
+      type: blob.type || "image/png",
+      lastModified: Date.now(),
+    });
+  };
+
+  // 多次去水印逻辑：用currentFile作为输入，更新为处理后的文件
+  const handleRemoveWatermark = async (rect: WatermarkRect) => {
+    // 校验：必须有当前文件
+    if (!currentFile) {
+      message.warning("请先上传图片");
+      return;
+    }
+
+    // 构建FormData（用currentFile，不是originalFile）
+    const formData = new FormData();
+    formData.append("image", currentFile); // ✅ 用当前处理中的文件
+    formData.append("x", rect.x.toString());
+    formData.append("y", rect.y.toString());
+    formData.append("w", rect.width.toString());
+    formData.append("h", rect.height.toString());
+
+    try {
+      setLoading(true);
+      const res = await fetch("http://localhost:8000/remove-watermark", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error(`请求失败：${res.status}`);
+      }
+
+      // 1. 获取处理后的图片Blob
+      const processedBlob = await res.blob();
+      // 2. 转为File对象（用于下一次请求）
+      const processedFile = blobToFile(processedBlob, currentFile.name);
+      // 3. 生成预览URL
+      const processedUrl = URL.createObjectURL(processedBlob);
+
+      // 4. 更新状态：当前文件 = 处理后的文件，画布显示新图片
+      setCurrentFile(processedFile);
+      setMediaSrc(processedUrl);
+
+      message.success("水印去除成功（已更新为最新图片）");
+    } catch (err) {
+      console.error("去水印失败：", err);
+      message.error("去除失败，请重试");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 可选：重置为原始图片
+  const handleReset = () => {
+    if (!originalFile) return;
+    setCurrentFile(originalFile);
+    setMediaSrc(URL.createObjectURL(originalFile));
+    message.success("已重置为原始图片");
+  };
+
+  // 保存当前图片到本地
+  const handleSaveImage = () => {
+    if (!mediaSrc) {
+      message.warning("暂无图片可保存");
+      return;
+    }
+    const link = document.createElement("a");
+    link.href = mediaSrc;
+    link.download = `processed_${originalFile!.name}`;
+    link.click();
+    message.success("图片保存成功");
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="h-screen w-screen flex flex-col bg-gray-50 overflow-hidden">
+      <header className="h-14 w-full flex items-center justify-between px-6 border-b bg-white shadow-sm sticky top-0 z-10">
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-bold text-blue-600">水滴去水印</h1>
+          <Upload beforeUpload={handleUpload} showUploadList={false} accept="image/*">
+            <Button type="primary" shape="round">打开图片</Button>
+          </Upload>
+          {/* 重置按钮：回到原始图片 */}
+          <Button shape="round" onClick={handleReset} disabled={!originalFile}>
+            重置原始图
+          </Button>
+        </div>
+        <div className="flex items-center gap-4">
+          <Button 
+            type="primary" 
+            loading={loading} 
+            shape="round"
+            onClick={handleSaveImage}
+            disabled={!mediaSrc}
+          >
+            保存图片
+          </Button>
+          <Avatar size={36} icon={<UserOutlined />} />
+        </div>
+      </header>
+      <main className="flex-1 relative w-full h-full overflow-auto flex justify-center items-center p-8">
+        <VFCanvas
+          src={mediaSrc}
+          onRectChange={handleRemoveWatermark}
+          loading={loading}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
       </main>
     </div>
   );
