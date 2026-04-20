@@ -105,7 +105,7 @@ export default function WatermarkRemovePage() {
 
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-50 overflow-hidden">
-      <header className="h-14 w-full flex items-center justify-between px-6 border-b bg-white shadow-sm sticky top-0 z-10">
+      <header className="h-14 w-full flex items-center justify-between px-6 bg-white shadow-sm sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-bold text-blue-600">水滴去水印</h1>
           <Upload beforeUpload={handleUpload} showUploadList={false} accept="image/*">
