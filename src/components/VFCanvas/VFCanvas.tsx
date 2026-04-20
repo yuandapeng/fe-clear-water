@@ -168,28 +168,6 @@ const VFCanvas = forwardRef<HTMLCanvasElement, VFCanvasProps>(
       return { x, y };
     };
 
-    // // 滚轮缩放（鼠标中心）
-    // const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    //   e.preventDefault();
-    //   const canvas = canvasRef.current;
-    //   if (!canvas) return;
-    //   const rect = canvas.getBoundingClientRect();
-    //   const x = e.clientX - rect.left;
-    //   const y = e.clientY - rect.top;
-
-    //   const newScale =
-    //     e.deltaY < 0 ? scaleRef.current * 1.1 : scaleRef.current * 0.9;
-    //   const clamped = Math.max(0.2, Math.min(5, newScale));
-    //   const factor = clamped / scaleRef.current;
-
-    //   offsetRef.current = {
-    //     x: x - (x - offsetRef.current.x) * factor,
-    //     y: y - (y - offsetRef.current.y) * factor,
-    //   };
-    //   scaleRef.current = clamped;
-    //   redraw();
-    // };
-
     // 鼠标按下：锁定grabbing，直到鼠标松开
     const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
       if (spacePressedRef.current) {
