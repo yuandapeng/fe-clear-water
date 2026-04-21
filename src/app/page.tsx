@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { UserOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
-import { Button, Upload, Avatar, message, Spin } from "antd";
+import { Button, Upload, Avatar, message } from "antd";
 import VFCanvas from "@/components/VFCanvas";
 import type { WatermarkRect } from "@/components/VFCanvas";
 
@@ -135,34 +135,11 @@ export default function WatermarkRemovePage() {
         </div>
       </header>
       <main className="flex-1 relative w-full h-full overflow-auto flex justify-center items-center p-8">
-        <div style={{ width: 160 }}>
-          <ins
-            className="adsbygoogle"
-            style={{ display: "block" }}
-            data-ad-client="ca-pub-1925756896455648"
-            data-ad-slot="5558515832"
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          ></ins>
-        </div>
-        <div className="flex-1 h-full">
-          <VFCanvas
-            src={mediaSrc}
-            onRectChange={handleRemoveWatermark}
-            loading={loading}
-          />
-        </div>
-
-        <div style={{ width: 160 }}>
-          <ins
-            className="adsbygoogle"
-            style={{ display: "block" }}
-            data-ad-client="ca-pub-1925756896455648"
-            data-ad-slot="7881426848"
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          ></ins>
-        </div>
+        <VFCanvas
+          src={mediaSrc}
+          onRectChange={handleRemoveWatermark}
+          loading={loading}
+        />
       </main>
     </div>
   );
