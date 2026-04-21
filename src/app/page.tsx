@@ -52,7 +52,7 @@ export default function WatermarkRemovePage() {
 
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8000/remove-watermark", {
+      const res = await fetch("/api/remove-watermark", {
         method: "POST",
         body: formData,
       });
