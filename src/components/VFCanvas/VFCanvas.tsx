@@ -1,7 +1,7 @@
 "use client";
-import { useRef, useEffect, forwardRef, use } from "react";
+import { useRef, useEffect, forwardRef } from "react";
 import { useDebounceFn } from "ahooks";
-import { message, Spin } from "antd";
+import { message, Spin, Switch } from "antd";
 
 export type WatermarkRect = {
   x: number;
@@ -15,13 +15,15 @@ interface VFCanvasProps {
   onRectChange?: (rect: WatermarkRect) => void;
   className?: string;
   loading?: boolean;
+  // 👇 新增：模式切换回调
+  onModeChange?: (isAI: boolean) => void;
+  isAI?: boolean; // 可选：外部控制AI模式
 }
 
 const VFCanvas = forwardRef<HTMLCanvasElement, VFCanvasProps>(
-  ({ src, onRectChange, loading }, ref) => {
+  ({ src, onRectChange, loading, onModeChange, isAI }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const imgRef = useRef<HTMLImageElement | null>(null);
-
     const scaleRef = useRef(1);
     const offsetRef = useRef({ x: 0, y: 0 });
     const spacePressedRef = useRef(false);
@@ -31,10 +33,11 @@ const VFCanvas = forwardRef<HTMLCanvasElement, VFCanvasProps>(
     const startPosRef = useRef({ x: 0, y: 0 });
     const currentRectRef = useRef<WatermarkRect | null>(null);
 
-    // ==============================================
-    // 🔴 核心修复：纯JS控制光标，拖动时锁定grabbing
-    // ==============================================
-    // 设置Canvas光标（纯JS）
+    const handleAISwitch = (checked: boolean) => {
+      onModeChange?.(checked);
+    };
+
+    // 设置Canvas光标
     const setCanvasCursor = (cursor: string) => {
       if (canvasRef.current) {
         canvasRef.current.style.cursor = cursor;
@@ -248,6 +251,8 @@ const VFCanvas = forwardRef<HTMLCanvasElement, VFCanvasProps>(
 
     // 鼠标松开：才恢复光标（核心修复点）
     const handleMouseUp = () => {
+       if(!src) return; // 没有图片时，不处理鼠标事件
+
       isPanningRef.current = false;
       // 只有松开鼠标，才判断是否恢复grab或默认
       if (spacePressedRef.current) {
@@ -275,6 +280,17 @@ const VFCanvas = forwardRef<HTMLCanvasElement, VFCanvasProps>(
 
     return (
       <div className="w-full h-full relative overflow-hidden">
+        
+        {/* 👇 👇 新增：AI 模式 Switch 按钮 */}
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2 bg-white px-2 py-1 rounded shadow">
+          <Switch
+            checked={isAI}
+            onChange={handleAISwitch}
+            checkedChildren="AI"
+            unCheckedChildren="普通"
+          />
+        </div>
+
         <canvas
           ref={canvasRef}
           className="bg-white shadow-lg block w-full h-full"
@@ -284,7 +300,7 @@ const VFCanvas = forwardRef<HTMLCanvasElement, VFCanvasProps>(
           onMouseLeave={handleMouseUp}
           onDoubleClick={fitToCenter}
         />
-        {/* ✅ 悬浮遮罩，绝对定位，完全不影响画布宽高布局 */}
+
         {loading && (
           <div className="absolute inset-0 bg-black/10 flex items-center justify-center z-50">
             <Spin size="large" description="处理中..." />
@@ -292,7 +308,7 @@ const VFCanvas = forwardRef<HTMLCanvasElement, VFCanvasProps>(
         )}
       </div>
     );
-  },
+  }
 );
 
 VFCanvas.displayName = "VFCanvas";

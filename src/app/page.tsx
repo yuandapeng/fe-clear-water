@@ -17,6 +17,8 @@ export default function WatermarkRemovePage() {
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const [isAI, setIsAI] = useState(false); // AI模式开关
+
   // 首次上传图片：初始化原始文件和当前文件
   const handleUpload: UploadProps["beforeUpload"] = (file) => {
     const url = URL.createObjectURL(file);
@@ -52,7 +54,7 @@ export default function WatermarkRemovePage() {
       const payload = {
         image: image, // 转换为base64字符串
         rects: rects,
-        type: "AI"
+        type: isAI ? "AI" : "normal",
       };
 
       const res = await http.post<{ image: string }>("/api/remove-watermark", payload);
@@ -129,6 +131,8 @@ export default function WatermarkRemovePage() {
           src={mediaSrc}
           onRectChange={handleRemoveWatermark}
           loading={loading}
+          onModeChange={(checked) => setIsAI(checked)}
+          isAI={isAI}
         />
       </main>
     </div>
