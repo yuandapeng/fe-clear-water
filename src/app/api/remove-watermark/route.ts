@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     // 4. 获取 Python 返回的修好的图片
     const data = await res.json();
 
-    console.log("去水印处理完成，正在返回结果...", data);
+    console.log("去水印处理完成，正在返回结果...");
 
     // 5. 返回给前端
     return Response.json(data);
