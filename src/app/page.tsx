@@ -5,6 +5,8 @@ import type { UploadProps } from "antd";
 import { Button, Upload, Avatar, message } from "antd";
 import VFCanvas from "@/components/VFCanvas";
 import type { WatermarkRect } from "@/components/VFCanvas";
+import { base642File, urlToBase64 } from "@/utils";
+import { http } from "@/service/http";
 
 export default function WatermarkRemovePage() {
   // 1. 原始文件（首次上传的图片）
@@ -25,15 +27,6 @@ export default function WatermarkRemovePage() {
     return false;
   };
 
-  // 核心：把Blob转为File对象（关键！后端需要File格式）
-  const blobToFile = (blob: Blob, fileName: string): File => {
-    // 保留原始文件名和类型
-    return new File([blob], fileName, {
-      type: blob.type || "image/png",
-      lastModified: Date.now(),
-    });
-  };
-
   // 多次去水印逻辑：用currentFile作为输入，更新为处理后的文件
   const handleRemoveWatermark = async (rect: WatermarkRect) => {
     // 校验：必须有当前文件
@@ -42,35 +35,32 @@ export default function WatermarkRemovePage() {
       return;
     }
 
-    // 构建FormData（用currentFile，不是originalFile）
-    const formData = new FormData();
-    formData.append("image", currentFile); // ✅ 用当前处理中的文件
-    formData.append("x", rect.x.toString());
-    formData.append("y", rect.y.toString());
-    formData.append("w", rect.width.toString());
-    formData.append("h", rect.height.toString());
+    
+    const rects = [{
+      x: rect.x,
+      y: rect.y,
+      w: rect.width,
+      h: rect.height,
+    }]; // 目前只处理一个矩形，后续可扩展为多个
 
     try {
       setLoading(true);
-      const res = await fetch("/api/remove-watermark", {
-        method: "POST",
-        body: formData,
-      });
 
-      if (!res.ok) {
-        throw new Error(`请求失败：${res.status}`);
-      }
+      // 注意：格式转换成了png 格式，ai 模型更适合处理png格式的图片，且png支持透明背景，去水印后效果更好
+      const image = await urlToBase64(URL.createObjectURL(currentFile)); 
+     
+      const payload = {
+        image: image, // 转换为base64字符串
+        rects: rects,
+        type: "AI"
+      };
 
-      // 1. 获取处理后的图片Blob
-      const processedBlob = await res.blob();
-      // 2. 转为File对象（用于下一次请求）
-      const processedFile = blobToFile(processedBlob, currentFile.name);
-      // 3. 生成预览URL
-      const processedUrl = URL.createObjectURL(processedBlob);
+      const res = await http.post<{ image: string }>("/api/remove-watermark", payload);
 
+      const processImg = res.data.image; // 后端返回的base64字符串
       // 4. 更新状态：当前文件 = 处理后的文件，画布显示新图片
-      setCurrentFile(processedFile);
-      setMediaSrc(processedUrl);
+      setCurrentFile(base642File(processImg, currentFile.name)); // 转回File对象
+      setMediaSrc(processImg);
 
       message.success("水印去除成功（已更新为最新图片）");
     } catch (err) {
