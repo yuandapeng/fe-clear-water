@@ -78,7 +78,6 @@ export default function WatermarkRemovePage() {
     message.success("保存成功");
   };
 
-
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-50 overflow-hidden">
       <header className="h-14 min-h-14 px-6 flex items-center justify-between bg-white shadow-sm">
@@ -126,6 +125,9 @@ export default function WatermarkRemovePage() {
           onModeChange={setIsAI}
         />
       </main>
+      <footer className="h-10 min-h-10 text-center text-sm text-gray-500">
+        copyright © 2026 水滴去水印 - 免费在线图片视频去水印工具
+      </footer>
     </div>
   );
 }
