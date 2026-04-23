@@ -82,7 +82,7 @@ export default function WatermarkRemovePage() {
 
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-50 overflow-hidden">
-      <header className="h-14 px-6 flex items-center justify-between bg-white shadow-sm">
+      <header className="h-14 min-h-14 px-6 flex items-center justify-between bg-white shadow-sm">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-bold text-blue-600">水滴去水印</h1>
 
