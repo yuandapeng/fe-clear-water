@@ -78,7 +78,6 @@ export default function WatermarkRemovePage() {
     message.success("保存成功");
   };
 
-  console.log("页面渲染，当前图片：", mediaSrc);
 
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-50 overflow-hidden">
